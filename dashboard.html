@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rep Performance Dashboard — PlaySlots Support</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-border: #2a2d3a;
+    --text: #e4e4e7;
+    --text-dim: #9ca3af;
+    --accent: #6366f1;
+    --accent-light: #818cf8;
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.12);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.12);
+    --yellow: #eab308;
+    --yellow-bg: rgba(234,179,8,0.12);
+    --blue: #3b82f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-light), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .meta {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .header .meta span { color: var(--accent-light); }
+
+  /* ── KPI Cards ─────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .kpi.green::before { background: var(--green); }
+  .kpi.red::before { background: var(--red); }
+  .kpi.yellow::before { background: var(--yellow); }
+  .kpi .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .kpi .value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .kpi .sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ── Charts Grid ───────────────────────── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .chart-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .chart-card canvas { width: 100% !important; }
+
+  /* ── Rep Table ─────────────────────────── */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 28px;
+    overflow-x: auto;
+  }
+  .table-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 11px;
+    border-bottom: 1px solid var(--card-border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--accent-light); }
+  th .sort-arrow { font-size: 10px; margin-left: 4px; }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    white-space: nowrap;
+  }
+  tr:hover td { background: rgba(99,102,241,0.05); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.good { background: var(--green-bg); color: var(--green); }
+  .badge.warn { background: var(--yellow-bg); color: var(--yellow); }
+  .badge.bad  { background: var(--red-bg); color: var(--red); }
+
+  /* ── Loading / Error states ────────────── */
+  .status-msg {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+  .status-msg h2 { color: var(--text); margin-bottom: 12px; }
+  .status-msg code {
+    display: block;
+    background: rgba(255,255,255,0.06);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 12px;
+    color: var(--accent-light);
+  }
+
+  /* ── Responsive ────────────────────────── */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Conversation log ──────────────────── */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-bar select, .filter-bar input {
+    background: var(--bg);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .filter-bar select:focus, .filter-bar input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="status-msg" id="loading">
+    <h2>Loading Dashboard Data…</h2>
+    <p>Attempting to load <strong>dashboard_data.json</strong></p>
+    <p style="margin-top:16px; font-size:13px;">If this is your first time, run the data fetcher first:</p>
+    <code>pip install requests && python pull_data.py</code>
+    <p style="margin-top:20px; font-size:13px; color:var(--accent-light);">
+      Or view the dashboard with demo data:
+      <button onclick="loadDemoData()" style="background:var(--accent);color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;margin-left:8px;font-size:13px;">Load Demo Data</button>
+    </p>
+  </div>
+</div>
+
+<script>
+// ── Demo Data Generator ──────────────────────────────────────────────────
+function generateDemoData() {
+  const reps = ["C PSM", "AM PSM", "O PSM", "Hernando PSM"];
+  const players = ["CasinoKing99", "LuckySpinner", "SlotMaster22", "JackpotJane", "PokerFace88",
+    "WildCard77", "SpinToWin", "GoldenAce", "ReelDeal", "MegaWins55",
+    "BonusHunter", "BigBetBob", "DiamondQueen", "HighRoller42", "Ace_Player"];
+  const tags = ["billing", "technical", "game-issue", "account", "withdrawal", "deposit", "bonus", "VIP"];
+
+  const now = Date.now() / 1000;
+  const records = [];
+
+  for (let d = 29; d >= 0; d--) {
+    const dayBase = now - d * 86400;
+    const numConvos = 8 + Math.floor(Math.random() * 15);
+
+    for (let c = 0; c < numConvos; c++) {
+      const created = dayBase + Math.random() * 72000;
+      const rep = reps[Math.floor(Math.random() * reps.length)];
+      const player = players[Math.floor(Math.random() * players.length)];
+      const isClosed = Math.random() > 0.15;
+
+      // Simulate response times — most are fast, some breach SLA
+      let frSec = 30 + Math.random() * 120;
+      if (Math.random() < 0.18) frSec = 200 + Math.random() * 300; // SLA breach ~18%
+      frSec = Math.round(frSec);
+
+      let resSec = 120 + Math.random() * 400;
+      if (Math.random() < 0.12) resSec = 700 + Math.random() * 600; // SLA breach ~12%
+      resSec = Math.round(resSec);
+
+      const dt = new Date(created * 1000);
+      const tagList = [];
+      if (Math.random() > 0.5) tagList.push(tags[Math.floor(Math.random() * tags.length)]);
+
+      records.push({
+        id: `demo_${d}_${c}`,
+        source: Math.random() > 0.3 ? "intercom" : "ghl",
+        created_at: Math.round(created),
+        created_date: dt.toISOString().split('T')[0],
+        created_hour: dt.getHours(),
+        player_name: player,
+        player_id: `p_${Math.random().toString(36).substr(2,6)}`,
+        player_initiated: Math.random() > 0.1,
+        rep_name: rep,
+        rep_id: rep.replace(/\s/g,'_').toLowerCase(),
+        state: isClosed ? "closed" : "open",
+        first_response_seconds: frSec,
+        resolution_seconds: isClosed ? resSec : null,
+        first_response_breach: frSec > 180,
+        resolution_breach: isClosed ? resSec > 600 : false,
+        tags: tagList,
+      });
+    }
+  }
+
+  // Compute summary
+  const frTimes = records.filter(r => r.first_response_seconds != null).map(r => r.first_response_seconds);
+  const resTimes = records.filter(r => r.resolution_seconds != null).map(r => r.resolution_seconds);
+  const frBreaches = records.filter(r => r.first_response_breach);
+  const resBreaches = records.filter(r => r.resolution_breach);
+  const playerInit = records.filter(r => r.player_initiated);
+
+  const repMap = {};
+  records.forEach(r => {
+    if (!repMap[r.rep_name]) repMap[r.rep_name] = { total: 0, closed: 0, fr: [], res: [], frB: 0, resB: 0 };
+    const s = repMap[r.rep_name];
+    s.total++;
+    if (r.state === 'closed') s.closed++;
+    if (r.first_response_seconds != null) { s.fr.push(r.first_response_seconds); if (r.first_response_breach) s.frB++; }
+    if (r.resolution_seconds != null) { s.res.push(r.resolution_seconds); if (r.resolution_breach) s.resB++; }
+  });
+
+  const repSummary = Object.entries(repMap).map(([name, s]) => {
+    const avgFr = s.fr.length ? s.fr.reduce((a,b) => a+b,0) / s.fr.length : null;
+    const avgRes = s.res.length ? s.res.reduce((a,b) => a+b,0) / s.res.length : null;
+    const medFr = s.fr.length ? s.fr.sort((a,b)=>a-b)[Math.floor(s.fr.length/2)] : null;
+    const medRes = s.res.length ? s.res.sort((a,b)=>a-b)[Math.floor(s.res.length/2)] : null;
+    return {
+      name, total_conversations: s.total, closed: s.closed,
+      avg_first_response_seconds: avgFr ? Math.round(avgFr*10)/10 : null,
+      median_first_response_seconds: medFr ? Math.round(medFr*10)/10 : null,
+      avg_resolution_seconds: avgRes ? Math.round(avgRes*10)/10 : null,
+      median_resolution_seconds: medRes ? Math.round(medRes*10)/10 : null,
+      fr_breaches: s.frB, res_breaches: s.resB,
+      fr_breach_rate: s.fr.length ? Math.round(s.frB/s.fr.length*1000)/10 : 0,
+      res_breach_rate: s.res.length ? Math.round(s.resB/s.res.length*1000)/10 : 0,
+    };
+  }).sort((a,b) => b.total_conversations - a.total_conversations);
+
+  const dailyMap = {};
+  records.forEach(r => {
+    if (!dailyMap[r.created_date]) dailyMap[r.created_date] = { total: 0, breaches: 0, closed: 0 };
+    dailyMap[r.created_date].total++;
+    if (r.first_response_breach) dailyMap[r.created_date].breaches++;
+    if (r.state === 'closed') dailyMap[r.created_date].closed++;
+  });
+  const daily = Object.entries(dailyMap).sort().map(([date, v]) => ({ date, ...v }));
+
+  const hourlyMap = {};
+  records.forEach(r => { hourlyMap[r.created_hour] = (hourlyMap[r.created_hour] || 0) + 1; });
+  const hourly = Array.from({length:24}, (_,h) => ({ hour: h, count: hourlyMap[h] || 0 }));
+
+  return {
+    generated_at: new Date().toISOString(),
+    is_demo: true,
+    sla: { first_response_seconds: 180, resolution_seconds: 600 },
+    overview: {
+      total_conversations: records.length,
+      player_initiated: playerInit.length,
+      avg_first_response: frTimes.length ? Math.round(frTimes.reduce((a,b)=>a+b,0)/frTimes.length*10)/10 : null,
+      median_first_response: frTimes.length ? frTimes.sort((a,b)=>a-b)[Math.floor(frTimes.length/2)] : null,
+      avg_resolution: resTimes.length ? Math.round(resTimes.reduce((a,b)=>a+b,0)/resTimes.length*10)/10 : null,
+      median_resolution: resTimes.length ? resTimes.sort((a,b)=>a-b)[Math.floor(resTimes.length/2)] : null,
+      fr_breach_count: frBreaches.length,
+      fr_breach_rate: frTimes.length ? Math.round(frBreaches.length/frTimes.length*1000)/10 : 0,
+      res_breach_count: resBreaches.length,
+      res_breach_rate: resTimes.length ? Math.round(resBreaches.length/resTimes.length*1000)/10 : 0,
+    },
+    reps: repSummary,
+    daily: daily,
+    hourly: hourly,
+    conversations: records,
+  };
+}
+
+// ── Format helpers ───────────────────────────────────────────────────────
+function fmtTime(seconds) {
+  if (seconds == null) return '—';
+  if (seconds < 60) return Math.round(seconds) + 's';
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  if (m < 60) return m + 'm ' + s + 's';
+  const h = Math.floor(m / 60);
+  return h + 'h ' + (m % 60) + 'm';
+}
+
+function fmtPct(val) { return val != null ? val.toFixed(1) + '%' : '—'; }
+
+function breachBadge(rate) {
+  if (rate == null) return '<span class="badge">—</span>';
+  if (rate <= 5) return `<span class="badge good">${rate.toFixed(1)}%</span>`;
+  if (rate <= 15) return `<span class="badge warn">${rate.toFixed(1)}%</span>`;
+  return `<span class="badge bad">${rate.toFixed(1)}%</span>`;
+}
+
+function timeBadge(seconds, sla) {
+  if (seconds == null) return '—';
+  const txt = fmtTime(seconds);
+  if (seconds <= sla * 0.7) return `<span class="badge good">${txt}</span>`;
+  if (seconds <= sla) return `<span class="badge warn">${txt}</span>`;
+  return `<span class="badge bad">${txt}</span>`;
+}
+
+// ── Render Dashboard ─────────────────────────────────────────────────────
+let DATA = null;
+let sortCol = null;
+let sortAsc = true;
+
+function render(data) {
+  DATA = data;
+  const o = data.overview;
+  const sla = data.sla;
+
+  document.getElementById('app').innerHTML = `
+    <div class="header">
+      <div>
+        <h1>Rep Performance Dashboard</h1>
+        <div class="meta">
+          PlaySlots Support · Tracking: C PSM, AM PSM, O PSM, Hernando PSM · SLA: <span>${fmtTime(sla.first_response_seconds)}</span> first response · <span>${fmtTime(sla.resolution_seconds)}</span> resolution
+          ${data.is_demo ? ' · <span style="color:var(--yellow)">DEMO DATA</span>' : ''}
+        </div>
+      </div>
+      <div class="meta">
+        Last updated: <span>${new Date(data.generated_at).toLocaleString()}</span>
+        <button onclick="refreshData()" style="margin-left:10px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Refresh Data</button>
+        <br>Conversations: <span>${o.total_conversations}</span> (${o.player_initiated} player-initiated)
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi ${o.avg_first_response && o.avg_first_response <= sla.first_response_seconds ? 'green' : 'red'}">
+        <div class="label">Avg First Response</div>
+        <div class="value">${fmtTime(o.avg_first_response)}</div>
+        <div class="sub">Median: ${fmtTime(o.median_first_response)} · SLA: ${fmtTime(sla.first_response_seconds)}</div>
+      </div>
+      <div class="kpi ${o.avg_resolution && o.avg_resolution <= sla.resolution_seconds ? 'green' : 'red'}">
+        <div class="label">Avg Resolution Time</div>
+        <div class="value">${fmtTime(o.avg_resolution)}</div>
+        <div class="sub">Median: ${fmtTime(o.median_resolution)} · SLA: ${fmtTime(sla.resolution_seconds)}</div>
+      </div>
+      <div class="kpi ${o.fr_breach_rate <= 10 ? 'green' : 'red'}">
+        <div class="label">First Response SLA Breaches</div>
+        <div class="value">${o.fr_breach_count}</div>
+        <div class="sub">${fmtPct(o.fr_breach_rate)} of player-initiated conversations</div>
+      </div>
+      <div class="kpi ${o.res_breach_rate <= 10 ? 'green' : 'red'}">
+        <div class="label">Resolution SLA Breaches</div>
+        <div class="value">${o.res_breach_count}</div>
+        <div class="sub">${fmtPct(o.res_breach_rate)} of closed conversations</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Total Conversations</div>
+        <div class="value">${o.total_conversations}</div>
+        <div class="sub">${o.player_initiated} player-initiated</div>
+      </div>
+      <div class="kpi green">
+        <div class="label">Active Reps</div>
+        <div class="value">${data.reps.length}</div>
+        <div class="sub">Last 30 days</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Daily Conversation Volume & SLA Breaches</h3>
+        <canvas id="dailyChart" height="260"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Rep Performance Comparison — Avg First Response</h3>
+        <canvas id="repFrChart" height="260"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Hourly Volume Heatmap</h3>
+        <canvas id="hourlyChart" height="260"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Rep SLA Breach Rates</h3>
+        <canvas id="repBreachChart" height="260"></canvas>
+      </div>
+    </div>
+
+    <!-- Rep Table -->
+    <div class="table-card">
+      <h3>Rep Performance Breakdown</h3>
+      <table id="repTable">
+        <thead><tr>
+          <th data-col="name">Rep <span class="sort-arrow"></span></th>
+          <th data-col="total_conversations">Convos <span class="sort-arrow"></span></th>
+          <th data-col="closed">Closed <span class="sort-arrow"></span></th>
+          <th data-col="avg_first_response_seconds">Avg FR <span class="sort-arrow"></span></th>
+          <th data-col="median_first_response_seconds">Median FR <span class="sort-arrow"></span></th>
+          <th data-col="avg_resolution_seconds">Avg Resolution <span class="sort-arrow"></span></th>
+          <th data-col="median_resolution_seconds">Median Resolution <span class="sort-arrow"></span></th>
+          <th data-col="fr_breach_rate">FR Breach % <span class="sort-arrow"></span></th>
+          <th data-col="res_breach_rate">Res Breach % <span class="sort-arrow"></span></th>
+        </tr></thead>
+        <tbody id="repTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Recent Conversations -->
+    <div class="table-card">
+      <h3>Recent Conversations</h3>
+      <div class="filter-bar">
+        <select id="filterRep"><option value="">All Reps</option></select>
+        <select id="filterState">
+          <option value="">All States</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select id="filterBreach">
+          <option value="">All</option>
+          <option value="breach">SLA Breaches Only</option>
+          <option value="ok">No Breach</option>
+        </select>
+        <select id="filterSource">
+          <option value="">All Sources</option>
+          <option value="intercom">Intercom</option>
+          <option value="ghl">GHL</option>
+        </select>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Time</th>
+          <th>Player</th>
+          <th>Rep</th>
+          <th>Source</th>
+          <th>State</th>
+          <th>First Response</th>
+          <th>Resolution</th>
+          <th>FR SLA</th>
+          <th>Res SLA</th>
+        </tr></thead>
+        <tbody id="convoTableBody"></tbody>
+      </table>
+      <div id="convoPagination" style="text-align:center;padding:12px;color:var(--text-dim);font-size:13px;"></div>
+    </div>
+  `;
+
+  renderRepTable(data.reps);
+  renderConvoTable();
+  renderCharts(data);
+  attachFilters(data);
+  attachSort();
+}
+
+// ── Rep Table ────────────────────────────────────────────────────────────
+function renderRepTable(reps) {
+  const sla = DATA.sla;
+  document.getElementById('repTableBody').innerHTML = reps.map(r => `
+    <tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.total_conversations}</td>
+      <td>${r.closed}</td>
+      <td>${timeBadge(r.avg_first_response_seconds, sla.first_response_seconds)}</td>
+      <td>${timeBadge(r.median_first_response_seconds, sla.first_response_seconds)}</td>
+      <td>${timeBadge(r.avg_resolution_seconds, sla.resolution_seconds)}</td>
+      <td>${timeBadge(r.median_resolution_seconds, sla.resolution_seconds)}</td>
+      <td>${breachBadge(r.fr_breach_rate)}</td>
+      <td>${breachBadge(r.res_breach_rate)}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Conversation Table with filters ──────────────────────────────────────
+let convoPage = 0;
+const PER_PAGE = 50;
+
+function getFilteredConvos() {
+  let convos = DATA.conversations.slice().sort((a,b) => b.created_at - a.created_at);
+  const rep = document.getElementById('filterRep')?.value;
+  const state = document.getElementById('filterState')?.value;
+  const breach = document.getElementById('filterBreach')?.value;
+  const source = document.getElementById('filterSource')?.value;
+
+  if (rep) convos = convos.filter(c => c.rep_name === rep);
+  if (state) convos = convos.filter(c => c.state === state);
+  if (source) convos = convos.filter(c => c.source === source);
+  if (breach === 'breach') convos = convos.filter(c => c.first_response_breach || c.resolution_breach);
+  if (breach === 'ok') convos = convos.filter(c => !c.first_response_breach && !c.resolution_breach);
+  return convos;
+}
+
+function renderConvoTable() {
+  const sla = DATA.sla;
+  const convos = getFilteredConvos();
+  const page = convos.slice(convoPage * PER_PAGE, (convoPage + 1) * PER_PAGE);
+
+  document.getElementById('convoTableBody').innerHTML = page.map(c => {
+    const dt = new Date(c.created_at * 1000);
+    const timeStr = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const srcBadge = c.source === 'intercom'
+      ? '<span style="color:var(--blue)">Intercom</span>'
+      : '<span style="color:var(--accent-light)">GHL</span>';
+    return `<tr>
+      <td>${timeStr}</td>
+      <td>${c.player_name}</td>
+      <td>${c.rep_name}</td>
+      <td>${srcBadge}</td>
+      <td><span class="badge ${c.state === 'closed' ? 'good' : 'warn'}">${c.state}</span></td>
+      <td>${timeBadge(c.first_response_seconds, sla.first_response_seconds)}</td>
+      <td>${c.resolution_seconds != null ? timeBadge(c.resolution_seconds, sla.resolution_seconds) : '—'}</td>
+      <td>${c.first_response_breach ? '<span class="badge bad">BREACH</span>' : '<span class="badge good">OK</span>'}</td>
+      <td>${c.resolution_breach ? '<span class="badge bad">BREACH</span>' : (c.state === 'closed' ? '<span class="badge good">OK</span>' : '—')}</td>
+    </tr>`;
+  }).join('');
+
+  const totalPages = Math.ceil(convos.length / PER_PAGE);
+  document.getElementById('convoPagination').innerHTML = totalPages > 1
+    ? `Page ${convoPage+1} of ${totalPages} (${convos.length} conversations)
+       ${convoPage > 0 ? '<button onclick="convoPage--;renderConvoTable()" style="margin:0 8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer;">← Prev</button>' : ''}
+       ${convoPage < totalPages-1 ? '<button onclick="convoPage++;renderConvoTable()" style="padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer;">Next →</button>' : ''}`
+    : `${convos.length} conversations`;
+}
+
+function attachFilters(data) {
+  const repSelect = document.getElementById('filterRep');
+  data.reps.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.name; opt.textContent = r.name;
+    repSelect.appendChild(opt);
+  });
+  ['filterRep','filterState','filterBreach','filterSource'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => { convoPage = 0; renderConvoTable(); });
+  });
+}
+
+function attachSort() {
+  document.querySelectorAll('#repTable th').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol === col) sortAsc = !sortAsc;
+      else { sortCol = col; sortAsc = true; }
+
+      const sorted = DATA.reps.slice().sort((a,b) => {
+        let va = a[col], vb = b[col];
+        if (va == null) va = -Infinity;
+        if (vb == null) vb = -Infinity;
+        if (typeof va === 'string') return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return sortAsc ? va - vb : vb - va;
+      });
+      renderRepTable(sorted);
+    });
+  });
+}
+
+// ── Charts ───────────────────────────────────────────────────────────────
+function renderCharts(data) {
+  const chartDefaults = {
+    color: '#9ca3af',
+    borderColor: 'rgba(255,255,255,0.06)',
+  };
+  Chart.defaults.color = chartDefaults.color;
+  Chart.defaults.borderColor = chartDefaults.borderColor;
+
+  // Daily volume + breaches
+  new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels: data.daily.map(d => d.date.slice(5)),
+      datasets: [
+        {
+          label: 'Total Conversations',
+          data: data.daily.map(d => d.total),
+          backgroundColor: 'rgba(99,102,241,0.5)',
+          borderRadius: 4,
+          order: 2,
+        },
+        {
+          label: 'SLA Breaches',
+          data: data.daily.map(d => d.breaches),
+          backgroundColor: 'rgba(239,68,68,0.7)',
+          borderRadius: 4,
+          order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Rep first response comparison
+  const repColors = data.reps.map(r =>
+    r.avg_first_response_seconds <= data.sla.first_response_seconds
+      ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)'
+  );
+  new Chart(document.getElementById('repFrChart'), {
+    type: 'bar',
+    data: {
+      labels: data.reps.map(r => r.name),
+      datasets: [{
+        label: 'Avg First Response (seconds)',
+        data: data.reps.map(r => r.avg_first_response_seconds),
+        backgroundColor: repColors,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        annotation: {}
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        },
+        y: { grid: { display: false } }
+      }
+    },
+    plugins: [{
+      afterDraw(chart) {
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        const ctx = chart.ctx;
+        const slaX = xScale.getPixelForValue(data.sla.first_response_seconds);
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([6,4]);
+        ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+        ctx.lineWidth = 2;
+        ctx.moveTo(slaX, yScale.top);
+        ctx.lineTo(slaX, yScale.bottom);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(239,68,68,0.8)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('SLA ' + fmtTime(data.sla.first_response_seconds), slaX + 4, yScale.top + 14);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // Hourly volume
+  new Chart(document.getElementById('hourlyChart'), {
+    type: 'bar',
+    data: {
+      labels: data.hourly.map(h => h.hour.toString().padStart(2,'0') + ':00'),
+      datasets: [{
+        label: 'Conversations',
+        data: data.hourly.map(h => h.count),
+        backgroundColor: data.hourly.map(h =>
+          h.count > 20 ? 'rgba(239,68,68,0.6)' :
+          h.count > 10 ? 'rgba(234,179,8,0.6)' :
+          'rgba(99,102,241,0.4)'
+        ),
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Rep breach rates
+  new Chart(document.getElementById('repBreachChart'), {
+    type: 'bar',
+    data: {
+      labels: data.reps.map(r => r.name),
+      datasets: [
+        {
+          label: 'FR Breach %',
+          data: data.reps.map(r => r.fr_breach_rate),
+          backgroundColor: 'rgba(239,68,68,0.6)',
+          borderRadius: 4,
+        },
+        {
+          label: 'Resolution Breach %',
+          data: data.reps.map(r => r.res_breach_rate),
+          backgroundColor: 'rgba(234,179,8,0.6)',
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, title: { display: true, text: 'Breach Rate %' } }
+      }
+    }
+  });
+}
+
+// ── Load data ────────────────────────────────────────────────────────────
+function loadDemoData() {
+  const data = generateDemoData();
+  render(data);
+}
+
+async function refreshData() {
+  try {
+    const resp = await fetch('/api/refresh', { method: 'POST' });
+    if (resp.ok) {
+      await loadData();
+    } else {
+      console.error('Refresh failed');
+    }
+  } catch (e) {
+    console.log('Refresh endpoint not available (not running via server.js).');
+  }
+}
+
+async function loadData() {
+  // Try the API endpoint first (when served via server.js)
+  try {
+    const resp = await fetch('/api/data');
+    if (resp.ok) {
+      const data = await resp.json();
+      if (!data.error) { render(data); return; }
+    }
+  } catch (e) {}
+
+  // Fallback: try the static JSON file (when opened directly)
+  try {
+    const resp = await fetch('dashboard_data.json');
+    if (resp.ok) {
+      const data = await resp.json();
+      render(data);
+      return;
+    }
+  } catch (e) {}
+
+  // No data found — keep loading message visible
+  console.log('No data found. Use demo data, run pull_data.py, or start server.js.');
+}
+
+loadData();
+</script>
+</body>
+</html>

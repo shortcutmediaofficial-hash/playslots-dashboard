@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rep Performance Dashboard</title>
+<style>
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e4e7;--dim:#9ca3af;--accent:#6366f1;--alight:#818cf8;--green:#22c55e;--gbg:rgba(34,197,94,.13);--red:#ef4444;--rbg:rgba(239,68,68,.13);--yellow:#eab308;--ybg:rgba(234,179,8,.13);--blue:#3b82f6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding:22px;min-height:100vh}
+/* header */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:26px}
+.hdr h1{font-size:21px;font-weight:700;background:linear-gradient(135deg,var(--alight),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr .meta{font-size:12px;color:var(--dim);line-height:1.8}
+.hdr .meta b{color:var(--alight)}
+.demo-pill{display:inline-block;background:var(--ybg);color:var(--yellow);font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;margin-left:6px;vertical-align:middle;letter-spacing:.04em}
+/* kpi grid */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:13px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.kpi.g::before{background:var(--green)}.kpi.r::before{background:var(--red)}
+.kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:7px}
+.kpi .val{font-size:25px;font-weight:700;line-height:1.1}
+.kpi .sub{font-size:11px;color:var(--dim);margin-top:4px}
+/* charts */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:18px}
+.cc h3{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:14px}
+/* bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:140px;position:relative}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;height:100%}
+.bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;flex:1}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:1px;transition:opacity .2s}
+.bar:hover{opacity:.8}
+.bar-lbl{font-size:9px;color:var(--dim);margin-top:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* horizontal bar */
+.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hbar-name{font-size:12px;font-weight:600;width:100px;flex-shrink:0;color:var(--text)}
+.hbar-track{flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:22px;position:relative;overflow:hidden}
+.hbar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:#fff;transition:width .6s}
+.hbar-val{font-size:11px;color:var(--dim);width:40px;text-align:right;flex-shrink:0}
+.sla-marker{position:absolute;top:0;bottom:0;width:2px;background:rgba(239,68,68,.6)}
+.sla-label{position:absolute;top:-1px;font-size:9px;color:rgba(239,68,68,.8);white-space:nowrap}
+/* legend */
+.legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* table */
+.tbl-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:18px;margin-bottom:20px;overflow-x:auto}
+.tbl-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(99,102,241,.05)}
+.badge{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600}
+.bg{background:var(--gbg);color:var(--green)}.bw{background:var(--ybg);color:var(--yellow)}.br{background:var(--rbg);color:var(--red)}
+/* hourly heatmap */
+.hmap{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;align-items:end;height:100px}
+.hmap-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.hmap-bar{width:100%;border-radius:2px 2px 0 0;min-height:2px}
+.hmap-lbl{font-size:8px;color:var(--dim);transform:rotate(-90deg);height:16px;display:flex;align-items:center}
+@media(max-width:640px){.charts{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── deterministic demo data ───────────────────────────────────────────────
+function s(n){let x=Math.sin(n+1)*99317;return x-Math.floor(x)}
+function demo(){
+  const reps=["C PSM","AM PSM","O PSM","Hernando PSM"];
+  const now=Date.now()/1000;
+  const records=[];
+  let si=0;
+  for(let d=29;d>=0;d--){
+    const base=now-d*86400;
+    const n=9+Math.floor(s(si++)*10);
+    for(let c=0;c<n;c++){
+      const rep=reps[Math.floor(s(si++)*4)];
+      const isClosed=s(si++)>0.12;
+      let fr=28+s(si++)*100; if(s(si++)<0.19)fr=195+s(si++)*260; fr=Math.round(fr);
+      let res=90+s(si++)*350; if(s(si++)<0.13)res=640+s(si++)*520; res=Math.round(res);
+      const dt=new Date((base+s(si++)*72000)*1000);
+      records.push({rep,state:isClosed?"closed":"open",fr,res:isClosed?res:null,
+        frB:fr>180,resB:isClosed&&res>600,h:dt.getHours(),
+        date:dt.toISOString().split('T')[0],pi:s(si++)>0.09});
+    }
+  }
+  const rm={};
+  reps.forEach(r=>rm[r]={total:0,closed:0,fr:[],res:[],frB:0,resB:0});
+  records.forEach(r=>{
+    const s=rm[r.rep];s.total++;
+    if(r.state==='closed')s.closed++;
+    s.fr.push(r.fr);if(r.frB)s.frB++;
+    if(r.res!=null){s.res.push(r.res);if(r.resB)s.resB++;}
+  });
+  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y)/a.length):null;
+  const med=a=>{if(!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)]};
+  const repsArr=reps.map(name=>{const s=rm[name];return{name,total:s.total,closed:s.closed,
+    avgFr:avg(s.fr),medFr:med(s.fr),avgRes:avg(s.res),medRes:med(s.res),
+    frB:s.frB,resB:s.resB,frBR:s.fr.length?+(s.frB/s.fr.length*100).toFixed(1):0,
+    resBR:s.res.length?+(s.resB/s.res.length*100).toFixed(1):0}});
+  const dm={};
+  records.forEach(r=>{if(!dm[r.date])dm[r.date]={t:0,b:0};dm[r.date].t++;if(r.frB)dm[r.date].b++;});
+  const daily=Object.entries(dm).sort().map(([d,v])=>({d,t:v.t,b:v.b}));
+  const hm=Array(24).fill(0);records.forEach(r=>hm[r.h]++);
+  const allFr=records.map(r=>r.fr);
+  const allRes=records.filter(r=>r.res!=null).map(r=>r.res);
+  const frBreaches=records.filter(r=>r.frB);
+  const resBreaches=records.filter(r=>r.resB);
+  return{reps:repsArr,daily,hm,
+    total:records.length,pi:records.filter(r=>r.pi).length,
+    avgFr:avg(allFr),medFr:med(allFr),avgRes:avg(allRes),medRes:med(allRes),
+    frBC:frBreaches.length,frBR:+(frBreaches.length/allFr.length*100).toFixed(1),
+    resBC:resBreaches.length,resBR:+(resBreaches.length/allRes.length*100).toFixed(1)};
+}
+
+// ── helpers ──────────────────────────────────────────────────────────────
+function fmt(s){if(s==null)return'—';if(s<60)return s+'s';const m=Math.floor(s/60),sec=s%60;if(m<60)return m+'m '+(sec?sec+'s':'');return Math.floor(m/60)+'h '+(m%60)+'m'}
+function tb(s,sla){if(s==null)return'—';const t=fmt(s),c=s<=sla*.7?'bg':s<=sla?'bw':'br';return`<span class="badge ${c}">${t}</span>`}
+function bb(r){if(r==null)return'—';const c=r<=5?'bg':r<=15?'bw':'br';return`<span class="badge ${c}">${r.toFixed(1)}%</span>`}
+
+// ── chart helpers ─────────────────────────────────────────────────────────
+function barChart(data,maxVal,colorFn,labelFn,h=140){
+  const max=Math.max(...data.map(d=>d.v||0),1);
+  return`<div class="bar-chart" style="height:${h}px">`+data.map(d=>{
+    const pct=Math.round((d.v||0)/max*100);
+    const bars=d.v2!=null
+      ?`<div class="bar" style="height:${Math.round((d.v2||0)/max*100)}%;background:rgba(239,68,68,.7)"></div>
+         <div class="bar" style="height:${Math.round(((d.v||0)-(d.v2||0))/max*(100))}%;background:rgba(99,102,241,.5)"></div>`
+      :`<div class="bar" style="height:${pct}%;background:${colorFn?colorFn(d):'rgba(99,102,241,.5)'}"></div>`;
+    return`<div class="bar-wrap"><div class="bar-stack">${bars}</div><div class="bar-lbl">${labelFn(d)}</div></div>`
+  }).join('')+`</div>`}
+
+function hbarChart(data,slaVal,slaMax){
+  const max=Math.max(...data.map(d=>d.v),slaMax||1);
+  return data.map(d=>{
+    const pct=Math.round(d.v/max*100);
+    const slaX=Math.round(slaVal/max*100);
+    const col=d.v<=slaVal*0.7?'#22c55e':d.v<=slaVal?'#eab308':'#ef4444';
+    return`<div class="hbar-row">
+      <div class="hbar-name">${d.name}</div>
+      <div class="hbar-track">
+        <div class="hbar-fill" style="width:${pct}%;background:${col}">${fmt(d.v)}</div>
+        <div class="sla-marker" style="left:${slaX}%">
+          <span class="sla-label" style="left:3px">SLA</span>
+        </div>
+      </div>
+      <div class="hbar-val">${fmt(d.v)}</div>
+    </div>`}).join('')}
+
+function hmapChart(hm){
+  const max=Math.max(...hm,1);
+  return`<div class="hmap">`+hm.map((v,h)=>{
+    const pct=Math.round(v/max*100);
+    const col=pct>70?'rgba(239,68,68,.7)':pct>40?'rgba(234,179,8,.6)':'rgba(99,102,241,.4)';
+    return`<div class="hmap-col">
+      <div class="hmap-bar" style="height:${Math.max(pct,3)}%;background:${col};width:100%"></div>
+      <div class="hmap-lbl">${h.toString().padStart(2,'0')}</div>
+    </div>`}).join('')+`</div>`}
+
+// ── render ────────────────────────────────────────────────────────────────
+function render(D){
+  const SLA_FR=180,SLA_RES=600;
+  const last14=D.daily.slice(-14);
+
+  document.getElementById('app').innerHTML=`
+  <div class="hdr">
+    <div>
+      <h1>Rep Performance Dashboard<span class="demo-pill">DEMO DATA</span></h1>
+      <div class="meta">
+        PlaySlots Support &nbsp;·&nbsp; Reps: <b>C PSM, AM PSM, O PSM, Hernando PSM</b><br>
+        SLA: <b>3 min</b> first response &nbsp;·&nbsp; <b>10 min</b> resolution &nbsp;·&nbsp; Last 30 days
+      </div>
+    </div>
+    <div class="meta" style="text-align:right">
+      Updated: <b>${new Date().toLocaleDateString()}</b><br>
+      <b>${D.total}</b> conversations &nbsp;·&nbsp; <b>${D.pi}</b> player-initiated
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi ${D.avgFr<=SLA_FR?'g':'r'}">
+      <div class="lbl">Avg First Response</div>
+      <div class="val">${fmt(D.avgFr)}</div>
+      <div class="sub">Median ${fmt(D.medFr)} · SLA ${fmt(SLA_FR)}</div>
+    </div>
+    <div class="kpi ${D.avgRes<=SLA_RES?'g':'r'}">
+      <div class="lbl">Avg Resolution</div>
+      <div class="val">${fmt(D.avgRes)}</div>
+      <div class="sub">Median ${fmt(D.medRes)} · SLA ${fmt(SLA_RES)}</div>
+    </div>
+    <div class="kpi ${D.frBR<=10?'g':'r'}">
+      <div class="lbl">FR SLA Breaches</div>
+      <div class="val">${D.frBC}</div>
+      <div class="sub">${D.frBR}% of conversations</div>
+    </div>
+    <div class="kpi ${D.resBR<=10?'g':'r'}">
+      <div class="lbl">Resolution Breaches</div>
+      <div class="val">${D.resBC}</div>
+      <div class="sub">${D.resBR}% of closed</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Total Conversations</div>
+      <div class="val">${D.total}</div>
+      <div class="sub">${D.pi} player-initiated</div>
+    </div>
+    <div class="kpi g">
+      <div class="lbl">Active Reps</div>
+      <div class="val">4</div>
+      <div class="sub">C PSM · AM PSM · O PSM · Hernando</div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="cc">
+      <h3>Daily Volume & SLA Breaches (last 14 days)</h3>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(99,102,241,.5)"></div>Conversations</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.7)"></div>SLA Breaches</div>
+      </div>
+      ${barChart(last14.map(d=>({v:d.t,v2:d.b,_d:d.d})),null,null,d=>d._d.slice(5))}
+    </div>
+    <div class="cc">
+      <h3>Rep · Avg First Response vs SLA</h3>
+      ${hbarChart(D.reps.map(r=>({name:r.name,v:r.avgFr})),SLA_FR,Math.max(...D.reps.map(r=>r.avgFr),SLA_FR)*1.3)}
+    </div>
+    <div class="cc">
+      <h3>Hourly Traffic (24h)</h3>
+      ${hmapChart(D.hm)}
+    </div>
+    <div class="cc">
+      <h3>SLA Breach Rate by Rep</h3>
+      ${D.reps.map(r=>`
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:600">${r.name}</span>
+            <span style="font-size:11px;color:var(--dim)">FR ${r.frBR}% · Res ${r.resBR}%</span>
+          </div>
+          <div style="display:flex;gap:4px;height:12px">
+            <div style="flex:1;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(r.frBR,100)}%;background:${r.frBR<=5?'var(--green)':r.frBR<=15?'var(--yellow)':'var(--red)'};border-radius:3px"></div>
+            </div>
+            <div style="flex:1;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(r.resBR,100)}%;background:${r.resBR<=5?'var(--green)':r.resBR<=15?'var(--yellow)':'var(--red)'};border-radius:3px"></div>
+            </div>
+          </div>
+        </div>`).join('')}
+      <div style="display:flex;gap:14px;margin-top:6px">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.6)"></div>FR Breach %</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(234,179,8,.6)"></div>Res Breach %</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <h3>Rep Performance Breakdown</h3>
+    <table><thead><tr>
+      <th>Rep</th><th>Convos</th><th>Closed</th>
+      <th>Avg FR</th><th>Median FR</th>
+      <th>Avg Resolution</th><th>Median Res</th>
+      <th>FR Breach %</th><th>Res Breach %</th>
+    </tr></thead><tbody>
+    ${D.reps.map(r=>`<tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.total}</td><td>${r.closed}</td>
+      <td>${tb(r.avgFr,SLA_FR)}</td><td>${tb(r.medFr,SLA_FR)}</td>
+      <td>${tb(r.avgRes,SLA_RES)}</td><td>${tb(r.medRes,SLA_RES)}</td>
+      <td>${bb(r.frBR)}</td><td>${bb(r.resBR)}</td>
+    </tr>`).join('')}
+    </tbody></table>
+  </div>
+  `}
+
+render(demo());
+</script>
+</body>
+</html>

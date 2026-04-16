@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-04-16T04:23:41.638120",
+  "tracked_reps": [
+    "O PSM",
+    "C PSM",
+    "AM PSM",
+    "Hernando PSM",
+    "OP",
+    "CP",
+    "AP",
+    "HP"
+  ],
+  "sla": {
+    "first_response_seconds": 180,
+    "resolution_seconds": 600
+  },
+  "overview": {
+    "total_conversations": 0,
+    "player_initiated": 0,
+    "avg_first_response": null,
+    "median_first_response": null,
+    "avg_resolution": null,
+    "median_resolution": null,
+    "fr_breach_count": 0,
+    "fr_breach_rate": 0,
+    "res_breach_count": 0,
+    "res_breach_rate": 0
+  },
+  "reps": [],
+  "daily": [],
+  "hourly": [
+    {
+      "hour": 0,
+      "count": 0
+    },
+    {
+      "hour": 1,
+      "count": 0
+    },
+    {
+      "hour": 2,
+      "count": 0
+    },
+    {
+      "hour": 3,
+      "count": 0
+    },
+    {
+      "hour": 4,
+      "count": 0
+    },
+    {
+      "hour": 5,
+      "count": 0
+    },
+    {
+      "hour": 6,
+      "count": 0
+    },
+    {
+      "hour": 7,
+      "count": 0
+    },
+    {
+      "hour": 8,
+      "count": 0
+    },
+    {
+      "hour": 9,
+      "count": 0
+    },
+    {
+      "hour": 10,
+      "count": 0
+    },
+    {
+      "hour": 11,
+      "count": 0
+    },
+    {
+      "hour": 12,
+      "count": 0
+    },
+    {
+      "hour": 13,
+      "count": 0
+    },
+    {
+      "hour": 14,
+      "count": 0
+    },
+    {
+      "hour": 15,
+      "count": 0
+    },
+    {
+      "hour": 16,
+      "count": 0
+    },
+    {
+      "hour": 17,
+      "count": 0
+    },
+    {
+      "hour": 18,
+      "count": 0
+    },
+    {
+      "hour": 19,
+      "count": 0
+    },
+    {
+      "hour": 20,
+      "count": 0
+    },
+    {
+      "hour": 21,
+      "count": 0
+    },
+    {
+      "hour": 22,
+      "count": 0
+    },
+    {
+      "hour": 23,
+      "count": 0
+    }
+  ],
+  "conversations": []
+}

@@ -1,0 +1,16 @@
+{
+  "name": "playslots-rep-dashboard",
+  "version": "1.0.0",
+  "description": "Rep Performance Dashboard for PlaySlots Support",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "fetch": "python3 pull_data.py"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
