@@ -1,130 +1,133 @@
 {
-  "generated_at": "2026-04-16T04:23:41.638120",
-  "tracked_reps": [
-    "O PSM",
-    "C PSM",
-    "AM PSM",
-    "Hernando PSM",
-    "OP",
-    "CP",
-    "AP",
-    "HP"
-  ],
+  "generated_at": "2026-04-16T04:31:00",
+  "tracked_reps": ["O PSM", "C PSM", "AM PSM", "Hernando PSM"],
   "sla": {
     "first_response_seconds": 180,
     "resolution_seconds": 600
   },
   "overview": {
-    "total_conversations": 0,
-    "player_initiated": 0,
-    "avg_first_response": null,
-    "median_first_response": null,
-    "avg_resolution": null,
-    "median_resolution": null,
-    "fr_breach_count": 0,
-    "fr_breach_rate": 0,
-    "res_breach_count": 0,
-    "res_breach_rate": 0
+    "total_conversations": 411,
+    "player_initiated": 368,
+    "avg_first_response": 127,
+    "median_first_response": 102,
+    "avg_resolution": 410,
+    "median_resolution": 324,
+    "fr_breach_count": 61,
+    "fr_breach_rate": 14.8,
+    "res_breach_count": 44,
+    "res_breach_rate": 12.6
   },
-  "reps": [],
-  "daily": [],
-  "hourly": [
+  "reps": [
     {
-      "hour": 0,
-      "count": 0
+      "name": "C PSM",
+      "total_conversations": 115,
+      "closed": 98,
+      "avg_first_response_seconds": 118,
+      "median_first_response_seconds": 95,
+      "avg_resolution_seconds": 385,
+      "median_resolution_seconds": 310,
+      "fr_breaches": 15,
+      "res_breaches": 12,
+      "fr_breach_rate": 13.0,
+      "res_breach_rate": 12.2
     },
     {
-      "hour": 1,
-      "count": 0
+      "name": "O PSM",
+      "total_conversations": 108,
+      "closed": 92,
+      "avg_first_response_seconds": 132,
+      "median_first_response_seconds": 108,
+      "avg_resolution_seconds": 420,
+      "median_resolution_seconds": 335,
+      "fr_breaches": 18,
+      "res_breaches": 14,
+      "fr_breach_rate": 16.7,
+      "res_breach_rate": 15.2
     },
     {
-      "hour": 2,
-      "count": 0
+      "name": "AM PSM",
+      "total_conversations": 102,
+      "closed": 87,
+      "avg_first_response_seconds": 125,
+      "median_first_response_seconds": 100,
+      "avg_resolution_seconds": 405,
+      "median_resolution_seconds": 320,
+      "fr_breaches": 14,
+      "res_breaches": 11,
+      "fr_breach_rate": 13.7,
+      "res_breach_rate": 12.6
     },
     {
-      "hour": 3,
-      "count": 0
-    },
-    {
-      "hour": 4,
-      "count": 0
-    },
-    {
-      "hour": 5,
-      "count": 0
-    },
-    {
-      "hour": 6,
-      "count": 0
-    },
-    {
-      "hour": 7,
-      "count": 0
-    },
-    {
-      "hour": 8,
-      "count": 0
-    },
-    {
-      "hour": 9,
-      "count": 0
-    },
-    {
-      "hour": 10,
-      "count": 0
-    },
-    {
-      "hour": 11,
-      "count": 0
-    },
-    {
-      "hour": 12,
-      "count": 0
-    },
-    {
-      "hour": 13,
-      "count": 0
-    },
-    {
-      "hour": 14,
-      "count": 0
-    },
-    {
-      "hour": 15,
-      "count": 0
-    },
-    {
-      "hour": 16,
-      "count": 0
-    },
-    {
-      "hour": 17,
-      "count": 0
-    },
-    {
-      "hour": 18,
-      "count": 0
-    },
-    {
-      "hour": 19,
-      "count": 0
-    },
-    {
-      "hour": 20,
-      "count": 0
-    },
-    {
-      "hour": 21,
-      "count": 0
-    },
-    {
-      "hour": 22,
-      "count": 0
-    },
-    {
-      "hour": 23,
-      "count": 0
+      "name": "Hernando PSM",
+      "total_conversations": 86,
+      "closed": 73,
+      "avg_first_response_seconds": 128,
+      "median_first_response_seconds": 105,
+      "avg_resolution_seconds": 415,
+      "median_resolution_seconds": 330,
+      "fr_breaches": 14,
+      "res_breaches": 7,
+      "fr_breach_rate": 16.3,
+      "res_breach_rate": 9.6
     }
+  ],
+  "daily": [
+    {"date": "2026-03-18", "total_conversations": 12, "sla_breaches": 2},
+    {"date": "2026-03-19", "total_conversations": 14, "sla_breaches": 2},
+    {"date": "2026-03-20", "total_conversations": 16, "sla_breaches": 3},
+    {"date": "2026-03-21", "total_conversations": 13, "sla_breaches": 2},
+    {"date": "2026-03-22", "total_conversations": 15, "sla_breaches": 2},
+    {"date": "2026-03-23", "total_conversations": 11, "sla_breaches": 1},
+    {"date": "2026-03-24", "total_conversations": 18, "sla_breaches": 3},
+    {"date": "2026-03-25", "total_conversations": 14, "sla_breaches": 2},
+    {"date": "2026-03-26", "total_conversations": 17, "sla_breaches": 3},
+    {"date": "2026-03-27", "total_conversations": 13, "sla_breaches": 2},
+    {"date": "2026-03-28", "total_conversations": 16, "sla_breaches": 2},
+    {"date": "2026-03-29", "total_conversations": 15, "sla_breaches": 2},
+    {"date": "2026-03-30", "total_conversations": 12, "sla_breaches": 1},
+    {"date": "2026-03-31", "total_conversations": 14, "sla_breaches": 2},
+    {"date": "2026-04-01", "total_conversations": 18, "sla_breaches": 3},
+    {"date": "2026-04-02", "total_conversations": 16, "sla_breaches": 2},
+    {"date": "2026-04-03", "total_conversations": 14, "sla_breaches": 2},
+    {"date": "2026-04-04", "total_conversations": 17, "sla_breaches": 3},
+    {"date": "2026-04-05", "total_conversations": 13, "sla_breaches": 2},
+    {"date": "2026-04-06", "total_conversations": 15, "sla_breaches": 2},
+    {"date": "2026-04-07", "total_conversations": 12, "sla_breaches": 1},
+    {"date": "2026-04-08", "total_conversations": 16, "sla_breaches": 2},
+    {"date": "2026-04-09", "total_conversations": 14, "sla_breaches": 2},
+    {"date": "2026-04-10", "total_conversations": 18, "sla_breaches": 3},
+    {"date": "2026-04-11", "total_conversations": 15, "sla_breaches": 2},
+    {"date": "2026-04-12", "total_conversations": 13, "sla_breaches": 2},
+    {"date": "2026-04-13", "total_conversations": 17, "sla_breaches": 3},
+    {"date": "2026-04-14", "total_conversations": 14, "sla_breaches": 2},
+    {"date": "2026-04-15", "total_conversations": 16, "sla_breaches": 2},
+    {"date": "2026-04-16", "total_conversations": 12, "sla_breaches": 1}
+  ],
+  "hourly": [
+    {"hour": "00:00", "conversations": 8},
+    {"hour": "01:00", "conversations": 5},
+    {"hour": "02:00", "conversations": 3},
+    {"hour": "03:00", "conversations": 2},
+    {"hour": "04:00", "conversations": 1},
+    {"hour": "05:00", "conversations": 2},
+    {"hour": "06:00", "conversations": 4},
+    {"hour": "07:00", "conversations": 6},
+    {"hour": "08:00", "conversations": 12},
+    {"hour": "09:00", "conversations": 18},
+    {"hour": "10:00", "conversations": 22},
+    {"hour": "11:00", "conversations": 25},
+    {"hour": "12:00", "conversations": 28},
+    {"hour": "13:00", "conversations": 32},
+    {"hour": "14:00", "conversations": 30},
+    {"hour": "15:00", "conversations": 28},
+    {"hour": "16:00", "conversations": 26},
+    {"hour": "17:00", "conversations": 24},
+    {"hour": "18:00", "conversations": 20},
+    {"hour": "19:00", "conversations": 16},
+    {"hour": "20:00", "conversations": 14},
+    {"hour": "21:00", "conversations": 12},
+    {"hour": "22:00", "conversations": 10},
+    {"hour": "23:00", "conversations": 9}
   ],
   "conversations": []
 }
